@@ -1,0 +1,458 @@
+package com.archhub.hubcreatepolicy;
+
+import com.arch.fpl.hub.model.QuoteRequest;
+import com.arch.fpl.hub.model.common.QuoteProcessRequestor;
+import com.arch.fpl.hub.model.common.Policy;
+import com.arch.fpl.hub.model.common.PolicyCoverage;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Predicate;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.LocalDate;
+import java.time.Period;
+import java.time.format.DateTimeFormatter;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+
+
+function String dateAddYearUP(String inputDateInString, String inputDateFormat, int plusYears) {
+         DateTimeFormatter dateTimeFormat = DateTimeFormatter.ofPattern(inputDateFormat);
+         LocalDate  a = LocalDate.parse(inputDateInString, dateTimeFormat); 
+         LocalDate b = a.plusYears(1);
+            
+         return b.format(dateTimeFormat);
+         
+ }
+
+function Predicate<PolicyCoverage> covCodeUpdateUP(String covIndicator) {
+ //Coverage Indicator 
+		        Predicate<PolicyCoverage> condition = sc -> sc.getCoverageCd().equalsIgnoreCase(covIndicator);
+		        
+                return condition ;
+ }
+ 
+ 
+ function PolicyCoverage updateCoverageUP(PolicyCoverage copyFromCoverage , PolicyCoverage copyToCoverage) {
+ 
+            PolicyCoverage tmpPolicyCoverage = new PolicyCoverage();
+            tmpPolicyCoverage = copyFromCoverage;
+            
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+			ObjectOutputStream oos = new ObjectOutputStream(bos);
+
+			oos.writeObject(tmpPolicyCoverage);	
+			oos.flush();
+			
+			byte[] bytes = bos.toByteArray();
+
+			ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
+
+			ObjectInputStream ois = new ObjectInputStream(bis);
+			copyToCoverage = (PolicyCoverage) ois.readObject();		
+		
+        return copyToCoverage ;
+ }
+ 
+ 
+ 
+ function String covDecimalToStringRoundedUP(String inputString) {
+ 
+            String outPutString = new BigDecimal(inputString).setScale(2, RoundingMode.HALF_UP).toString();
+		        
+     return outPutString ;
+ }
+ 
+ function String dateDiffInYearsUP(String inputDateInString, String inputDateFormat) {
+     
+		 DateTimeFormatter dateTimeFormat = DateTimeFormatter.ofPattern(inputDateFormat);
+		 LocalDate currentdate = LocalDate.now();
+		 LocalDate  compareDate = LocalDate.parse(inputDateInString, dateTimeFormat); 
+		 
+		 Period period = Period.between(compareDate, currentdate);
+		    int diffYr = period.getYears();
+		    
+		 return String.valueOf(diffYr);
+		 
+		 }
+ 
+ 
+rule "Update Policy Rating request Default and Derived Value DIROFF"
+	agenda-group "Update-Policy"
+	salience 6
+	when
+	$policy: Policy();
+	$quoteRequest: QuoteRequest(getPolicyProtection().getDiroff_2004() == true)
+	$quoteRequestor: QuoteProcessRequestor(getQuoteRequestorCode() == "HIP")
+	then
+		$policy.getPolicyCoverage().get(0).setCoverageCd("DIROFF");
+		$policy.getPolicyCoverage().get(0).setDeductible1Amt("0");
+		$policy.getPolicyCoverage().get(0).setSublimit1RBAmt("309");
+		$policy.getPolicyCoverage().get(0).setSublimit1Amt("1000000");
+        $policy.setDOPAdditionalInsuredOrg("N");
+        $policy.setDOPAdditionalInsuredOrgFct("1.00000");
+        $policy.setDOPantiTrustCovFct("1.00000");
+        $policy.setDOPantiTrustCovSurcharge("N");
+        $policy.setDOPComplexityofRiskFct("1.01000");
+        $policy.setDOPFinancialStabilityFct("1.00000");
+        $policy.setDOPIndustryFct("0.90000");
+        $policy.setDOPManagementStabilityFct("1.00000");
+        $policy.setDOPMergerAcquisitionFct("1.00000");
+        $policy.setDOPnonRescindableSideACovFct("1.00000");
+        $policy.setDOPOwnershipStructureFct("0.80000");
+        $policy.setDOPPriorClaimActivityFct("1.00000");
+        $policy.setDOPpriorFutureExpectedPPAFct("1.00000");
+        $policy.setDOPQualityofManagementFct("1.05000");
+        $policy.setDOPUnderwritingIntensityFct("1.00000");
+        $policy.setDOPYearsinBusinessFct("1.15000");
+        $policy.getPolicyCoverage().get(0).setEnteredPremium("0");
+        $policy.setDOPerpRunOffInd("N");
+        $policy.setOutsideDirectorshipFct("0.90000");
+        $policy.getPolicyCoverage().get(0).setOverridePremiumflag("N");
+        $policy.getPolicyCoverage().get(0).setPrevAdjustedAnnualPrem("0");
+        $policy.getPolicyCoverage().get(0).setPrevAnnualPremium("0");
+        $policy.getPolicyCoverage().get(0).setPrevcoverageITDPrem("0");
+        $policy.getPolicyCoverage().get(0).setPreverpPremOverrideInd("N");
+        $policy.getPolicyCoverage().get(0).setPrevTFSITDPrem("0");
+        $policy.setPubDebtCovFactor("1.00000");
+        $policy.setQualityOfBalSheetFct("0.96000");
+        $policy.setDOPPublicDebtFct("0.92000");
+        
+        //Dependent Factors 
+        $policy.setCOMYearsInBusinessFct($policy.getDOPYearsinBusinessFct());
+		$policy.setCOMQualityofManagementFct($policy.getDOPQualityofManagementFct());
+        
+        //Direct Mapping coverage node 
+        $policy.getPolicyCoverage().get(0).setCoverageEffectiveDt($quoteRequest.getPolicyInformation().getCovStartDt_5009());
+        $policy.getPolicyCoverage().get(0).setCoverageExpirationDt(dateAddYear($quoteRequest.getPolicyInformation().getCovStartDt_5009(), "MM/dd/yyyy", 1));
+        $policy.getPolicyCoverage().get(0).setPrevCovExpDt(dateAddYearR($quoteRequest.getPolicyInformation().getCovStartDt_5009(), "MM/dd/yyyy", 1));
+        $policy.getPolicyCoverage().get(0).setLimit1Amt($quoteRequest.getPolicyDirectorsAndOfficers().getDirOffLmtAmt_9002().toString());
+		$policy.getPolicyCoverage().get(0).setDeductible2Amt($quoteRequest.getPolicyDirectorsAndOfficers().getDirOffRetAmt_9011().toString());
+		$policy.getPolicyCoverage().get(0).setDeductible3Amt($quoteRequest.getPolicyDirectorsAndOfficers().getDirOffRetAmt_9011().toString());
+	
+		
+end 
+
+rule "Update Policy Rating request Derived Value EMPRLB"
+	agenda-group "Update-Policy"
+	salience 6
+	when
+	$policy: Policy();
+	$quoteRequest: QuoteRequest(getPolicyProtection().getEpl_2005() == true)
+	$quoteRequestor: QuoteProcessRequestor(getQuoteRequestorCode() == "HIP")
+	then
+		$policy.getPolicyCoverage().get(1).setCoverageCd("EMPRLB");
+		$policy.getPolicyCoverage().get(1).setCoverageAddDelind("N");
+	        $policy.getPolicyCoverage().get(1).setDeductible1Amt("0");
+	        $policy.getPolicyCoverage().get(1).setDeductible2Amt("0");
+	        $policy.getPolicyCoverage().get(1).setEnteredPremium("0");
+	        $policy.setEPLComplexityofRiskFct("1");
+	        $policy.setEPLComplexityofWorkforceFct("1");
+	        $policy.setEPLEmployeeDiversityFct("1");
+	        $policy.setEPLEmployeeTurnoverFct("1");
+	        $policy.setEPLFinancialStabilityFct("1");
+	        $policy.setEPLHRPracticesandProceduresFct("1");
+	        $policy.setEPLIndustryFct("1");
+	        $policy.setEPLLossPreventionandMitigationFct("1");
+	        $policy.setEPLMergerAcquisitionFct("1");
+	        $policy.setEPLPriorClaimActivityFct("1");
+	        $policy.setEPLQualityofManagementFct("1");
+	        $policy.setEPLSalaryRangeFct("1");
+	        $policy.setEPLScheduleRating("1");
+	        $policy.setEPLStockOptionFct("1");
+	        $policy.setEPLThirdPartyLiabilityExposureFct("1");
+	        $policy.setEPLTrainingFct("1");
+	        $policy.setEPLUnderWritingIntensityFct("1");
+	        $policy.setEPLYearsinBusinessFct("1");
+	        $policy.getPolicyCoverage().get(1).setErpEffectiveDt("");
+	        $policy.getPolicyCoverage().get(1).setErpFactor("1");
+	        $policy.getPolicyCoverage().get(1).setErpPremOverrideInd("N");
+	        $policy.getPolicyCoverage().get(1).setErpPremOverrideInput("N");
+	        $policy.getPolicyCoverage().get(1).setErpRunOffInd("N");
+	        $policy.getPolicyCoverage().get(1).setIncludeThirdPartyCov("N");
+	        $policy.getPolicyCoverage().get(1).setOtherFeePremium("0");
+	        $policy.getPolicyCoverage().get(1).setOverridePremiumflag("N");
+	        $policy.setPartTimeEmployeeFct("1");
+	        $policy.getPolicyCoverage().get(1).setPrevAdjustedAnnualPrem("0");
+	        $policy.getPolicyCoverage().get(1).setPrevAnnualPremium("0");
+	        $policy.getPolicyCoverage().get(1).setPrevAPRPPremium("0");
+	        $policy.getPolicyCoverage().get(1).setPrevcoverageITDPrem("0");
+	        $policy.getPolicyCoverage().get(1).setPreverpPremOverrideInd("0");
+	        $policy.getPolicyCoverage().get(1).setPrevITDERPPrem("0");
+	        $policy.getPolicyCoverage().get(1).setPrevTFSITDPrem("0");
+	        $policy.getPolicyCoverage().get(1).setSublimit1Amt("0");
+	        $policy.setWPVNEFlexRatingFct("1");
+	        $policy.getPolicyCoverage().get(1).setDeductible2Amt("0");
+	        $policy.getPolicyCoverage().get(1).setDeductible3Amt("0");
+	        
+	        
+	        //Direct Mapping coverage node 
+	        
+            $policy.getPolicyCoverage().get(1).setCoverageEffectiveDt($quoteRequest.getPolicyInformation().getCovStartDt_5009());
+            $policy.getPolicyCoverage().get(1).setCoverageExpirationDt(dateAddYear($quoteRequest.getPolicyInformation().getCovStartDt_5009(), "MM/dd/yyyy", 1));
+            $policy.getPolicyCoverage().get(1).setPrevCovExpDt(dateAddYearR($quoteRequest.getPolicyInformation().getCovStartDt_5009(), "MM/dd/yyyy", 1));
+            $policy.setPartTimeEmployees($quoteRequest.getPolicyCompanyHistory().getNumEmpPrtCurYr_3031().toString());
+            $policy.getPolicyCoverage().get(1).setLimit1Amt($quoteRequest.getPolicyEmploymentPracticesLiability().getEmpPracLmt_10002().toString());
+    		$policy.getPolicyCoverage().get(1).setDeductible1Amt($quoteRequest.getPolicyEmploymentPracticesLiability().getRetLmt_10011().toString());
+    		
+    		$policy.setEmployeesCt(String.valueOf($quoteRequest.getPolicyCompanyHistory().getNumEmpFulPrYr_3030() + $quoteRequest.getPolicyCompanyHistory().getNumEmpPrtCurYr_3031()));
+		
+end 
+
+rule "Update Policy Rating request Derived Value FIDCRY"
+	agenda-group "Update-Policy"
+	salience 6
+	when
+	$policy: Policy();
+	$quoteRequest: QuoteRequest(getPolicyProtection().getFiduciary_2006() == true)
+	$quoteRequestor: QuoteProcessRequestor(getQuoteRequestorCode() == "HIP")
+	then
+		$policy.getPolicyCoverage().get(2).setCoverageCd("FIDCRY");
+		$policy.setClaimSettlement(" ");
+	        $policy.setClaimSettlementFactor("1");
+	        $policy.setCombinedDOP("1");
+	        $policy.setCombinedEPL("1");
+	        $policy.setCombinedFID("1");
+	        $policy.setCombinedLimitFactor("1");
+	        $policy.setCombinedLimitInd("N");
+	        $policy.setCommercialLinesFlex("N");
+	        $policy.getPolicyCoverage().get(2).setCoverageAddDelind("N");
+	        $policy.getPolicyCoverage().get(2).setDeductible1Amt("0");
+	        $policy.setDefenseCombinedDOP("1");
+	        $policy.setDefenseCombinedEPL("1");
+	        $policy.setDefenseCombinedFID("1");
+	        $policy.setDefenseOutsideLimit("1");
+	        $policy.setDefenseOutsideLmtCombinedFactor("1");
+	        $policy.setDeleteFIDInd("N");
+	        $policy.getPolicyCoverage().get(2).setEnteredPremium("0");
+	        $policy.getPolicyCoverage().get(2).setErpEffectiveDt("");
+	        $policy.getPolicyCoverage().get(2).setErpFactor("1");
+	        $policy.setErpPolicyInd("N");
+	        $policy.getPolicyCoverage().get(2).setErpPremOverrideInd("N");
+	        $policy.getPolicyCoverage().get(2).setErpPremOverrideInput("N");
+	        $policy.getPolicyCoverage().get(2).setErpRunOffInd("N");
+	        $policy.setFIDComplexityofRiskFct("1");
+	        $policy.setFIDESOPOwnershipModifierFct("1");
+	        $policy.setFIDFinancialStabilityFct("1");
+	        $policy.setFidFundingPositionFactor("1");
+	        $policy.setFIDMergerAcquisitionFct("1");
+	        $policy.setFIDPlanandRegulatoryComplianceFct("1");
+	        $policy.setFIDPlanTerminationFct("1");
+	        $policy.setFidPriorClaimActivityFct("1");
+	        $policy.setFIDQualityofManagementFct("1");
+	        $policy.setFIDQualityofPlanInvestmentsFct("1");
+	        $policy.setFIDQualityofPlanManagementFct("1");
+	        //$policy.setFIDScheduleRating("1");
+	        $policy.setFIDTypeofPlanFct("1");
+	        $policy.setFIDUnderWritingIntensityFct("1");
+	        $policy.setFIDYearsinBusinessFct("1");
+	        $policy.setIsNBERP("N");
+	        $policy.setIsShorteningTransInd("N");
+	        $policy.setNonRescindabilityFactor("1");
+	        $policy.setNonRescindabilityInd("N");
+	        $policy.getPolicyCoverage().get(2).setOtherFeePremium("0");
+	        $policy.getPolicyCoverage().get(2).setOverridePremiumflag("N");
+	        $policy.setPolicySymbol("PCD");
+	        $policy.getPolicyCoverage().get(2).setPrevAdjustedAnnualPrem("0");
+	        $policy.getPolicyCoverage().get(2).setPrevAnnualPremium("0");
+	        $policy.getPolicyCoverage().get(2).setPrevAPRPPremium("0");
+	        $policy.getPolicyCoverage().get(2).setPrevcoverageITDPrem("0");
+	        $policy.getPolicyCoverage().get(2).setPreverpPremOverrideInd("0");
+	        $policy.getPolicyCoverage().get(2).setPrevITDERPPrem("0");
+	        $policy.setPrevITDTotalFidPrem("0");
+	        $policy.setPrevpolicyITDCommissionAmt("0");
+	        $policy.setPrevpolicyITDERPCommissionAmt("0");
+	        $policy.getPolicyCoverage().get(2).setPrevTFSITDPrem("0");
+	        $policy.setPrevtotalAdjustedAnnualPrem("0");
+	        $policy.setPrevTotTaxFeesAndSurcharge("0");
+	        $policy.setRemoveERPFID("N");
+			
+			//Direct Mapping coverage node 
+           
+            $policy.getPolicyCoverage().get(2).setCoverageEffectiveDt($quoteRequest.getPolicyInformation().getCovStartDt_5009());
+            $policy.getPolicyCoverage().get(2).setCoverageExpirationDt(dateAddYear($quoteRequest.getPolicyInformation().getCovStartDt_5009(), "MM/dd/yyyy", 1));
+            $policy.getPolicyCoverage().get(2).setPrevCovExpDt(dateAddYearR($quoteRequest.getPolicyInformation().getCovStartDt_5009(), "MM/dd/yyyy", 1));
+            $policy.getPolicyCoverage().get(2).setLimit1Amt($quoteRequest.getPolicyFiduciaryLiability().getFidLiabLmtAmt_11002().toString());
+    		$policy.getPolicyCoverage().get(2).setDeductible1Amt($quoteRequest.getPolicyFiduciaryLiability().getRetLmtAmt_11011().toString());
+end 
+
+rule "Update Policy Rating request Derived Value CREMTA"
+	agenda-group "Update-Policy"
+	salience 6
+	when
+	$policy: Policy();
+	$quoteRequest: QuoteRequest(getPolicyProtection().getCrime_2007() == true)
+	$quoteRequestor: QuoteProcessRequestor(getQuoteRequestorCode() == "HIP")
+	then
+		    $policy.getPolicyCoverage().get(3).setCoverageCd("CREMTA");
+		    $policy.setCancelMethodInd("");
+	        $policy.setCancelReturnPremium("");
+	        $policy.setCancelType("");
+	        $policy.setCommercialLinesFlex("N");
+	        $policy.getPolicyCoverage().get(3).setComputerTheftCoverageSelection("Y");	        
+	        $policy.getPolicyCoverage().get(3).setCoverageAddDelind("N");
+	        $policy.getPolicyCoverage().get(3).setCrimeDiscoveryFactor("1");
+	        $policy.setCRMAggregateLimitFct("1");
+	        $policy.setCRMBankingandCashManagementControlsFct("1");
+	        $policy.setCRMComplexityofRiskFct("1");
+	        $policy.setCRMEmploymentScreeningFct("1");
+	        $policy.setCRMFinancialStabilityFct("1");
+	        $policy.getPolicyCoverage().get(3).setCRMForeignLocationExposureFct("1");
+	        $policy.setCRMHighValueProcessingMaterialsFct("1");
+	        $policy.setCRMInternalAuditFct("1");
+	        $policy.setCRMInternalControlsFct("1");
+	        $policy.setCRMInternetRevenueFct("1");
+	        $policy.setCRMInventoryManagementControlsFct("1");
+	        $policy.setCRMLocationCash("");
+	        $policy.setCRMMergerAcquisitionFct("1");
+	        $policy.setCRMNumberofLocationsFct("1");
+	        $policy.setCRMPriorClaimActivityFct("1");
+	        $policy.setCRMProfileWorkforceFct("1");
+	        $policy.setCRMQualityofManagementFct("1");
+	        //$policy.getPolicyCoverage().get(3).setCRMRatePremisesFct("1");
+	        $policy.setCRMRatePremisesFct("1");
+	        $policy.setCRMRateTransitFct("1");
+	        $policy.setCRMScheduleRating("1");
+	        $policy.setCRMThirdpartyExposureFct("1");
+	        $policy.setCRMUnderWritingIntensityFct("1");
+	        $policy.setCRMVendorControlsFct("1");
+	        $policy.setCRMYearsinBusinessFct("1");
+	        $policy.getPolicyCoverage().get(3).setDeductible1Amt("0");
+	        $policy.setDeleteCRMInd("N");
+	        $policy.setDeleteCRMBInd("N");
+	        $policy.setDeleteCRMCInd("N");
+	        $policy.setDeleteCRMDInd("N");
+	        $policy.setDeleteCRMEInd("N");
+	        $policy.setDeleteCRMFInd("N");
+	        $policy.setDeleteCRMGInd("N");
+	        $policy.getPolicyCoverage().get(3).setFundsTransferCoverageSelection("N");	        
+	        $policy.getPolicyCoverage().get(3).setInvestigationCostFactor("1");
+	        $policy.getPolicyCoverage().get(3).setIsLastCrimeCoverage("BLANKS");
+	        $policy.setIsNBERP("N");
+	        $policy.setIsShorteningTransInd("N");
+	        $policy.getPolicyCoverage().get(3).setLimit1Amt("");
+	        $policy.setNumberOfLocations("");
+	        $policy.getPolicyCoverage().get(3).setOtherFeePremium("0");
+	        $policy.getPolicyCoverage().get(3).setOverridePremiumflag("N");
+	        $policy.setPolicySymbol("PCD");
+	        $policy.getPolicyCoverage().get(3).setPrevCovExpDt("");
+	        $policy.getPolicyCoverage().get(3).setPrevAdjustedAnnualPrem("0");
+	        $policy.getPolicyCoverage().get(3).setPrevAnnualPremium("0");
+	        $policy.getPolicyCoverage().get(3).setPrevAPRPPremium("0");
+	        $policy.getPolicyCoverage().get(3).setPrevcoverageITDPrem("0");
+	        $policy.getPolicyCoverage().get(3).setPrevITDERPPrem("0");
+	        //$policy.getPolicyCoverage().get(1).setPrevITDtotalCrimePrem("");
+	        $policy.setPrevpolicyITDCommissionAmt("0");
+	        $policy.setPrevpolicyITDERPCommissionAmt("0");
+	        $policy.getPolicyCoverage().get(3).setPrevTFSITDPrem("0");
+	        $policy.getPolicyCoverage().get(3).setPrevAdjustedAnnualPrem("0");
+	        $policy.setPrevTotTaxFeesAndSurcharge("0");
+	        $policy.getPolicyCoverage().get(3).setRate("");
+	        
+	        //Direct Mapping coverage node 
+            $policy.getPolicyCoverage().get(3).setCoverageEffectiveDt($quoteRequest.getPolicyInformation().getCovStartDt_5009());
+            $policy.getPolicyCoverage().get(3).setCoverageExpirationDt(dateAddYear($quoteRequest.getPolicyInformation().getCovStartDt_5009(), "MM/dd/yyyy", 1));
+            $policy.getPolicyCoverage().get(3).setPrevCovExpDt(dateAddYearR($quoteRequest.getPolicyInformation().getCovStartDt_5009(), "MM/dd/yyyy", 1));
+            $policy.getPolicyCoverage().get(3).setLimit1Amt($quoteRequest.getPolicyCrime().getCrmLmtAmt_12002().toString());
+    		$policy.getPolicyCoverage().get(3).setDeductible1Amt($quoteRequest.getPolicyCrime().getRetLmtAmt_12011().toString());
+    		
+    		//Additional Crime Coverages
+    		
+    		$policy.getPolicyCoverage().set(4, updateCoverageUP($policy.getPolicyCoverage().get(3), $policy.getPolicyCoverage().get(4)));
+    		$policy.getPolicyCoverage().set(5, updateCoverageUP($policy.getPolicyCoverage().get(3), $policy.getPolicyCoverage().get(5)));
+    		$policy.getPolicyCoverage().set(6, updateCoverageUP($policy.getPolicyCoverage().get(3), $policy.getPolicyCoverage().get(6)));
+    		$policy.getPolicyCoverage().set(7, updateCoverageUP($policy.getPolicyCoverage().get(3), $policy.getPolicyCoverage().get(7)));
+    		$policy.getPolicyCoverage().set(8, updateCoverageUP($policy.getPolicyCoverage().get(3), $policy.getPolicyCoverage().get(8)));
+    		$policy.getPolicyCoverage().set(9, updateCoverageUP($policy.getPolicyCoverage().get(3), $policy.getPolicyCoverage().get(9)));
+    		
+    		
+end 
+
+rule "Update Policy Rating request Derived Value Crime additional Coverages"
+	agenda-group "Update-Policy"
+	salience 2
+	when
+	$policy: Policy();
+	$quoteRequest: QuoteRequest(getPolicyProtection().getCrime_2007() == true)
+	$quoteRequestor: QuoteProcessRequestor(getQuoteRequestorCode() == "HIP")
+	then
+	 $policy.getPolicyCoverage().get(4).setCoverageCd("CRCFRF");
+     $policy.getPolicyCoverage().get(5).setCoverageCd("CRCPRB");
+     $policy.getPolicyCoverage().get(6).setCoverageCd("CRCURG");
+     $policy.getPolicyCoverage().get(7).setCoverageCd("CRFRGE");
+     $policy.getPolicyCoverage().get(8).setCoverageCd("CRINPC");
+     $policy.getPolicyCoverage().get(9).setCoverageCd("CROTPD");
+	
+end
+ 
+rule "Update Policy Rating request Remove empty policy coverage nodes"
+	agenda-group "Update-Policy"
+	salience 1
+	when
+	$policy: Policy();
+	$quoteRequestor: QuoteProcessRequestor(getQuoteRequestorCode() == "HIP")
+	then
+	     $policy.getPolicyCoverage().removeIf(covCodeUpdateR("N"));
+		 $policy.setTotalActiveCoverage(String.valueOf($policy.getPolicyCoverage().size()));
+		
+end
+
+rule "Update Policy Rating request Default Values Policy node"
+	agenda-group "Update-Policy"
+	salience 6
+	when
+			$policy: Policy();
+			$quoteRequestor: QuoteProcessRequestor(getQuoteRequestorCode() == "HIP")
+			
+	then
+			$policy.setCancelReturnPremium("0");
+            $policy.setClaimSettlement("N");
+            $policy.setClaimSettlementFactor("1.00000");
+            $policy.setCombinedLimitInd("S");
+            $policy.setCommercialLinesFlex("N");
+            $policy.setDefenseCombinedDOP("Y");
+            $policy.setDefenseCombinedEPL("N");
+            $policy.setDefenseOutsideLimit("1000000");
+            $policy.setDeleteDOPInd("N");
+            $policy.setErpPolicyInd("N");
+            $policy.setPrevITDTotalDOPrem("0");
+            $policy.setPrevpolicyITDCommissionAmt("0");
+            $policy.setPrevpolicyITDERPCommissionAmt("0");
+            $policy.setPrevtotalAdjustedAnnualPrem("0");
+            $policy.setPrevTotTaxFeesAndSurcharge("0");
+            $policy.setTransactionCommissionPct("25.00");
+            $policy.setTransactionSubType("AP");
+            $policy.setTransactionType("NB");
+            $policy.setWritingCompany("1");
+            $policy.setIsNBERP("N");
+            $policy.setPolSym("PCD");
+            $policy.setIsShorteningTransInd("N");
+            $policy.setNonRescindabilityFactor("1.00000");
+            $policy.setNonRescindabilityInd("N");
+
+end
+
+rule "Update Policy Rating request Derived Values"
+	agenda-group "Update-Policy"
+	salience 6
+	when
+			$policy: Policy();
+			$quoteRequest: QuoteRequest();
+			$quoteRequestor: QuoteProcessRequestor(getQuoteRequestorCode() == "HIP")
+	then
+			$policy.setGoverningState($quoteRequest.getPolicyLocation().get(0).getPriAddrSt_6007());
+            $policy.setPolicyEffDt($quoteRequest.getPolicyInformation().getCovStartDt_5009());
+            $policy.setTransactionEffectiveDate($quoteRequest.getPolicyInformation().getCovStartDt_5009());
+            $policy.setTotalRevenue(covDecimalToStringRoundedUP(new BigDecimal($quoteRequest.getPolicyFinancialInformation().getRevenues_4016()).toString()));
+            $policy.setPolicyExpDt(dateAddYearUP($quoteRequest.getPolicyInformation().getCovStartDt_5009(), "MM/dd/yyyy", 1));
+            $policy.setRaterEffectiveDt($quoteRequest.getPolicyInformation().getCovStartDt_5009());
+            $policy.setYearsInBusiness(dateDiffInYearsUP($quoteRequest.getPolicyCompanyHistory().getDateBeginBusCurOwnership_3002(), "MM/dd/yyyy"));
+			
+end
+
+
+
+

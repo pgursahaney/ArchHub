@@ -1,0 +1,76 @@
+package com.archhub.hubcreatepolicy;
+
+import com.arch.fpl.hub.model.QuoteRequest;
+import com.arch.fpl.hub.model.common.QuoteProcessRequestor;
+import com.arch.fpl.hub.model.common.Policy;
+import com.arch.fpl.hub.model.common.PolicyCoverage;
+import java.util.ArrayList;
+import java.util.List;
+
+ 
+rule "Rating request Coverage ID Mapping DIROFF"
+	agenda-group "Rate-Policy"
+    salience 6
+	when
+	$policy: Policy();
+	$quoteRequest: QuoteRequest(getPolicyProtection().getDiroff_2004() == true)
+	$quoteRequestor: QuoteProcessRequestor(getQuoteRequestorCode() == "HIP")
+	then
+		$policy.getPolicyCoverage().get(0).setCoverageCd("DIROFF");
+		$policy.getPolicyCoverage().get(0).setID("1");
+end 
+
+rule "Rating request Coverage ID Mapping EMPRLB"
+	agenda-group "Rate-Policy"
+    salience 6
+	when
+	$policy: Policy();
+	$quoteRequest: QuoteRequest(getPolicyProtection().getEpl_2005() == true)
+	$quoteRequestor: QuoteProcessRequestor(getQuoteRequestorCode() == "HIP")
+	then
+		$policy.getPolicyCoverage().get(1).setCoverageCd("EMPRLB");
+		$policy.getPolicyCoverage().get(1).setID("2");
+		
+		
+end 
+
+rule "Rating request Coverage ID Mapping FIDCRY"
+	agenda-group "Rate-Policy"
+    salience 6
+	when
+	$policy: Policy();
+	$quoteRequest: QuoteRequest(getPolicyProtection().getFiduciary_2006() == true)
+	$quoteRequestor: QuoteProcessRequestor(getQuoteRequestorCode() == "HIP")
+	then
+		$policy.getPolicyCoverage().get(2).setCoverageCd("FIDCRY");
+		$policy.getPolicyCoverage().get(2).setID("3");
+		
+		
+end 
+
+rule "Rating request Coverage ID Mapping CREMTA"
+	agenda-group "Rate-Policy"
+    salience 6
+	when
+	$policy: Policy();
+	$quoteRequest: QuoteRequest(getPolicyProtection().getCrime_2007() == true)
+	$quoteRequestor: QuoteProcessRequestor(getQuoteRequestorCode() == "HIP")
+	then
+		$policy.getPolicyCoverage().get(3).setCoverageCd("CREMTA");
+		$policy.getPolicyCoverage().get(3).setID("3");
+		
+		$policy.getPolicyCoverage().get(4).setCoverageCd("CRCFRF");
+		$policy.getPolicyCoverage().get(5).setCoverageCd("CRCPRB");
+		$policy.getPolicyCoverage().get(6).setCoverageCd("CRCURG");
+		$policy.getPolicyCoverage().get(7).setCoverageCd("CRFRGE");
+		$policy.getPolicyCoverage().get(8).setCoverageCd("CRINPC");
+		$policy.getPolicyCoverage().get(9).setCoverageCd("CROTPD");
+		
+		
+		
+end 
+ 
+
+
+
+
