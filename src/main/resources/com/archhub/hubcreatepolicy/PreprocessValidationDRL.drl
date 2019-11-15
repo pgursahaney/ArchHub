@@ -1,0 +1,919 @@
+package com.archhub.hubcreatepolicy;
+
+import com.arch.fpl.hub.model.QuoteRequest;
+import com.arch.fpl.hub.model.common.QuoteProcessRequestor;
+import com.arch.fpl.hub.model.quote.response.QuoteStatus;
+import com.arch.fpl.hub.model.common.Validator;
+import com.arch.fpl.hub.model.common.AdhocQuoteDetails;
+
+    rule "Pre process to check for declines-1"
+	agenda-group "Initial-Validator"
+    salience 100
+	when 
+	$adhocQuoteDetails: AdhocQuoteDetails()
+	$quoteRequestor: QuoteProcessRequestor(quoteRequestorCode == "HIP")
+	not com.arch.fpl.hub.model.common.Validator()
+	$quoteStatus: QuoteStatus()
+	$quoteRequest: QuoteRequest("Yes".equalsIgnoreCase(policyCompanyHistory.isCompNFTYN_3012) == true)
+	then
+	 insert(new com.arch.fpl.hub.model.common.Validator());
+	 $quoteStatus.setStatusCode("Decline");
+	 $quoteStatus.setStatusDetail("This submission has been declined due to the insured's non-profit status.");
+	 $adhocQuoteDetails.setDeclineReasonCd("610");
+    end 
+    
+    rule "Pre process to check for declines-2"
+	agenda-group "Initial-Validator"
+    salience 99
+	when 
+	$adhocQuoteDetails: AdhocQuoteDetails()
+	$quoteRequestor: QuoteProcessRequestor(quoteRequestorCode == "HIP")
+	not com.arch.fpl.hub.model.common.Validator()
+	$quoteStatus: QuoteStatus()
+	$quoteRequest: QuoteRequest("Yes".equalsIgnoreCase(policyCompanyHistory.taxExmtStsYN_3013) == true) 
+	then
+	 insert(new com.arch.fpl.hub.model.common.Validator());
+	 $quoteStatus.setStatusCode("Decline");
+	 $quoteStatus.setStatusDetail("This submission has been declined due to the insured's tax exempt status.");
+	 $adhocQuoteDetails.setDeclineReasonCd("610");
+    end 
+    
+    rule "Pre process to check for declines-3"
+	agenda-group "Initial-Validator"
+    salience 98
+	when 
+	$adhocQuoteDetails: AdhocQuoteDetails()
+	$quoteRequestor: QuoteProcessRequestor(quoteRequestorCode == "HIP")
+	not com.arch.fpl.hub.model.common.Validator()
+	$quoteStatus: QuoteStatus()
+	$quoteRequest: QuoteRequest("AK".equalsIgnoreCase(policyLocation.get(0).priAddrSt_6007)) 
+	then
+	 insert(new com.arch.fpl.hub.model.common.Validator());
+	 $quoteStatus.setStatusCode("Decline");
+	 $quoteStatus.setStatusDetail("This submission has been declined due to: insured state. Company not licensed to write business in Alaska.");
+	 $adhocQuoteDetails.setDeclineReasonCd("610");
+    end
+    
+    
+    rule "Pre process to check for declines-4"
+	agenda-group "Initial-Validator"
+    salience 97
+	when 
+	$adhocQuoteDetails: AdhocQuoteDetails()
+	$quoteRequestor: QuoteProcessRequestor(quoteRequestorCode == "HIP")
+	not com.arch.fpl.hub.model.common.Validator()
+	$quoteStatus: QuoteStatus()
+	$quoteRequest: QuoteRequest("HI".equalsIgnoreCase(policyLocation.get(0).priAddrSt_6007))
+	then
+	 insert(new com.arch.fpl.hub.model.common.Validator());
+	 $quoteStatus.setStatusCode("Decline");
+	 $quoteStatus.setStatusDetail("This submission has been declined due to: insured state. Company not licensed to write business in Hawaii.");
+	 $adhocQuoteDetails.setDeclineReasonCd("610");
+    end
+    
+    
+    rule "Pre process to check for declines-5"
+	agenda-group "Initial-Validator"
+    salience 96
+	when 
+	$adhocQuoteDetails: AdhocQuoteDetails()
+	$quoteRequestor: QuoteProcessRequestor(quoteRequestorCode == "HIP")
+	not com.arch.fpl.hub.model.common.Validator()
+	$quoteStatus: QuoteStatus()
+	$quoteRequest: QuoteRequest("VT".equalsIgnoreCase(policyLocation.get(0).priAddrSt_6007))
+	then
+	 insert(new com.arch.fpl.hub.model.common.Validator());
+	 $quoteStatus.setStatusCode("Decline");
+	 $quoteStatus.setStatusDetail("This submission has been declined due to: insured state. Company not licensed to write business in Vermont.");
+	 $adhocQuoteDetails.setDeclineReasonCd("610");
+    end
+    
+    
+    rule "Pre process to check for declines-6"
+	agenda-group "Initial-Validator"
+    salience 95
+	when 
+	$adhocQuoteDetails: AdhocQuoteDetails()
+	$quoteRequestor: QuoteProcessRequestor(quoteRequestorCode == "HIP")
+	not com.arch.fpl.hub.model.common.Validator()
+	$quoteStatus: QuoteStatus()
+	$quoteRequest: QuoteRequest("WY".equalsIgnoreCase(policyLocation.get(0).priAddrSt_6007))
+	then
+	 insert(new com.arch.fpl.hub.model.common.Validator());
+	 $quoteStatus.setStatusCode("Decline");
+	 $quoteStatus.setStatusDetail("This submission has been declined due to: insured state. Company not licensed to write business in Wyoming.");
+	 $adhocQuoteDetails.setDeclineReasonCd("610");
+    end
+    
+    rule "Pre process to check for declines-7"
+	agenda-group "Initial-Validator"
+    salience 94
+	when 
+	$adhocQuoteDetails: AdhocQuoteDetails()
+	$quoteRequestor: QuoteProcessRequestor(quoteRequestorCode == "HIP")
+	not com.arch.fpl.hub.model.common.Validator()
+	$quoteStatus: QuoteStatus()
+	$quoteRequest: QuoteRequest(policyProtection.epl_2005 && "Yes".equalsIgnoreCase(policyEmploymentPracticesLiability.eqlOppEmplYN_10066) == false && policyCompanyHistory.numEmpFulCurYr_3029 > 50)
+	then
+	 insert(new com.arch.fpl.hub.model.common.Validator());
+	 $quoteStatus.setStatusCode("Decline");
+	 $quoteStatus.setStatusDetail("This submission has been declined due to the absence of an Equal Opportunity Employment policy.");
+	 $adhocQuoteDetails.setDeclineReasonCd("610");
+    end
+    
+    rule "Pre process to check for declines-8"
+	agenda-group "Initial-Validator"
+    salience 93
+	when 
+	$adhocQuoteDetails: AdhocQuoteDetails()
+	$quoteRequestor: QuoteProcessRequestor(quoteRequestorCode == "HIP")
+	not com.arch.fpl.hub.model.common.Validator()
+	$quoteStatus: QuoteStatus()
+	$quoteRequest: QuoteRequest(policyProtection.epl_2005 && "Yes".equalsIgnoreCase(policyEmploymentPracticesLiability.antDisYN_10067) == false && policyCompanyHistory.numEmpFulCurYr_3029 > 50)
+	then
+	 insert(new com.arch.fpl.hub.model.common.Validator());
+	 $quoteStatus.setStatusCode("Decline");
+	 $quoteStatus.setStatusDetail("This submission has been declined due to the absence of an anti-discrimination policy.");
+	 $adhocQuoteDetails.setDeclineReasonCd("610");
+    end
+    
+    rule "Pre process to check for declines-9"
+	agenda-group "Initial-Validator"
+    salience 92
+	when 
+	$adhocQuoteDetails: AdhocQuoteDetails()
+	$quoteRequestor: QuoteProcessRequestor(quoteRequestorCode == "HIP")
+	not com.arch.fpl.hub.model.common.Validator()
+	$quoteStatus: QuoteStatus()
+	$quoteRequest: QuoteRequest(policyProtection.epl_2005 && "Yes".equalsIgnoreCase(policyEmploymentPracticesLiability.antSexHarYN_10068) == false && policyCompanyHistory.numEmpFulCurYr_3029 > 50)
+	then
+	 insert(new com.arch.fpl.hub.model.common.Validator());
+	 $quoteStatus.setStatusCode("Decline");
+	 $quoteStatus.setStatusDetail("This submission has been declined due to the absence of an anti-sexual harassment policy.");
+	 $adhocQuoteDetails.setDeclineReasonCd("610");
+    end
+    
+    rule "Pre process to check for declines-10"
+	agenda-group "Initial-Validator"
+    salience 91
+	when 
+	$adhocQuoteDetails: AdhocQuoteDetails()
+	$quoteRequestor: QuoteProcessRequestor(quoteRequestorCode == "HIP")
+	not com.arch.fpl.hub.model.common.Validator()
+	$quoteStatus: QuoteStatus()
+	$quoteRequest: QuoteRequest(policyProtection.epl_2005 && "Yes".equalsIgnoreCase(policyEmploymentPracticesLiability.adaAccYN_10073) == false && policyCompanyHistory.numEmpFulCurYr_3029 > 50)
+	then
+	 insert(new com.arch.fpl.hub.model.common.Validator());
+	 $quoteStatus.setStatusCode("Decline");
+	 $quoteStatus.setStatusDetail("This submission has been declined due to the absence of an ADA accommodation policy.");
+	 $adhocQuoteDetails.setDeclineReasonCd("610");
+    end
+    
+    rule "Pre process to check for referrals-1"
+	agenda-group "Initial-Validator"
+    salience 50
+	when 
+	$adhocQuoteDetails: AdhocQuoteDetails()
+	$quoteRequestor: QuoteProcessRequestor(quoteRequestorCode == "HIP")
+	not com.arch.fpl.hub.model.common.Validator()
+	$quoteStatus: QuoteStatus()
+	$quoteRequest: QuoteRequest("CA".equalsIgnoreCase(policyLocation.get(0).priAddrSt_6007)) 
+	then
+	    insert(new com.arch.fpl.hub.model.common.Validator());
+	    $quoteStatus.setStatusCode("Referral");
+	    $quoteStatus.setStatusDetail("This has been referred for underwriting review.");
+	    $adhocQuoteDetails.setReferralReason("This submission has been referred due to: insured state. Company not licensed to write business in California.");
+    end 
+    
+    rule "Pre process to check for referrals-2"
+	agenda-group "Initial-Validator"
+    salience 49
+	when 
+	$adhocQuoteDetails: AdhocQuoteDetails()
+	$quoteRequestor: QuoteProcessRequestor(quoteRequestorCode == "HIP")
+	not com.arch.fpl.hub.model.common.Validator()
+	$quoteStatus: QuoteStatus()
+	$quoteRequest: QuoteRequest("CP".equalsIgnoreCase(policyCompanyHistory.businessRegAs_3003)) 
+	then
+	    insert(new com.arch.fpl.hub.model.common.Validator());
+	    $quoteStatus.setStatusCode("Referral");
+	    $quoteStatus.setStatusDetail("This has been referred for underwriting review.");
+	    $adhocQuoteDetails.setReferralReason("This submission has been referred due to: insured being a public company.");
+    end 
+    
+    rule "Pre process to check for referrals-3"
+	agenda-group "Initial-Validator"
+    salience 48
+	when 
+	$adhocQuoteDetails: AdhocQuoteDetails()
+	$quoteRequestor: QuoteProcessRequestor(quoteRequestorCode == "HIP")
+	not com.arch.fpl.hub.model.common.Validator()
+	$quoteStatus: QuoteStatus()
+	$quoteRequest: QuoteRequest(policyProtection.diroff_2004 && policyProtection.epl_2005 == false && policyProtection.fiduciary_2006 == false && policyProtection.crime_2007 == false && ("PT".equalsIgnoreCase(policyCompanyHistory.businessRegAs_3003) || "LP".equalsIgnoreCase(policyCompanyHistory.businessRegAs_3003))) 
+	then
+	    insert(new com.arch.fpl.hub.model.common.Validator());
+	    $quoteStatus.setStatusCode("Referral");
+	    $quoteStatus.setStatusDetail("This has been referred for underwriting review.");
+	    $adhocQuoteDetails.setReferralReason("This submission has been referred due to: insured being either a partnership or limited partnership company when only diroff coverage is requested.");
+    end 
+    
+    rule "Pre process to check for referrals-4"
+	agenda-group "Initial-Validator"
+    salience 47
+	when 
+	$adhocQuoteDetails: AdhocQuoteDetails()
+	$quoteRequestor: QuoteProcessRequestor(quoteRequestorCode == "HIP")
+	not com.arch.fpl.hub.model.common.Validator()
+	$quoteStatus: QuoteStatus()
+	$quoteRequest: QuoteRequest("JV".equalsIgnoreCase(policyCompanyHistory.businessRegAs_3003)) 
+	then
+	    insert(new com.arch.fpl.hub.model.common.Validator());
+	    $quoteStatus.setStatusCode("Referral");
+	    $quoteStatus.setStatusDetail("This has been referred for underwriting review.");
+	    $adhocQuoteDetails.setReferralReason("This submission has been referred due to: insured being either a joint venture company.");
+    end
+    
+    rule "Pre process to check for referrals-5"
+	agenda-group "Initial-Validator"
+    salience 46
+	when 
+	$adhocQuoteDetails: AdhocQuoteDetails()
+	$quoteRequestor: QuoteProcessRequestor(quoteRequestorCode == "HIP")
+	not com.arch.fpl.hub.model.common.Validator()
+	$quoteStatus: QuoteStatus()
+	$quoteRequest: QuoteRequest(policyCompanyHistory.totNumWrldEmp_3025 > 500) 
+	then
+	    insert(new com.arch.fpl.hub.model.common.Validator());
+	    $quoteStatus.setStatusCode("Referral");
+	    $quoteStatus.setStatusDetail("This has been referred for underwriting review.");
+	    $adhocQuoteDetails.setReferralReason("This submission has been referred due to: insured having more than 500 world wide employees.");
+    end
+    
+    rule "Pre process to check for referrals-7"
+	agenda-group "Initial-Validator"
+    salience 44
+	when 
+	$adhocQuoteDetails: AdhocQuoteDetails()
+	$quoteRequestor: QuoteProcessRequestor(quoteRequestorCode == "HIP")
+	not com.arch.fpl.hub.model.common.Validator()
+	$quoteStatus: QuoteStatus()
+	$quoteRequest: QuoteRequest(policyCompanyHistory.numEmpFulCurYr_3029 > 250 || policyCompanyHistory.numEmpFulPrYr_3030 > 250) 
+	then
+	    insert(new com.arch.fpl.hub.model.common.Validator());
+	    $quoteStatus.setStatusCode("Referral");
+	    $quoteStatus.setStatusDetail("This has been referred for underwriting review.");
+	    $adhocQuoteDetails.setReferralReason("This submission has been referred due to: insured having more than 250 full time employees either in the current year or prior year.");
+    end
+    
+    rule "Pre process to check for referrals-8"
+	agenda-group "Initial-Validator"
+    salience 43
+	when 
+	$adhocQuoteDetails: AdhocQuoteDetails()
+	$quoteRequestor: QuoteProcessRequestor(quoteRequestorCode == "HIP")
+	not com.arch.fpl.hub.model.common.Validator()
+	$quoteStatus: QuoteStatus()
+	$quoteRequest: QuoteRequest(policyCompanyHistory.numEmpCACurYr_3040 > 25 || policyCompanyHistory.numEmpCAPrYr_3041 > 25) 
+	then
+	    insert(new com.arch.fpl.hub.model.common.Validator());
+	    $quoteStatus.setStatusCode("Referral");
+	    $quoteStatus.setStatusDetail("This has been referred for underwriting review.");
+	    $adhocQuoteDetails.setReferralReason("This submission has been referred due to: insured having more than 25 employees in California either in the current year or prior year.");
+    end
+    
+    rule "Pre process to check for referrals-9"
+	agenda-group "Initial-Validator"
+    salience 42
+	when 
+	$adhocQuoteDetails: AdhocQuoteDetails()
+	$quoteRequestor: QuoteProcessRequestor(quoteRequestorCode == "HIP")
+	not com.arch.fpl.hub.model.common.Validator()
+	$quoteStatus: QuoteStatus()
+	$quoteRequest: QuoteRequest(policyLocation.get(0).getPriAddr1_6004().contains("P.O. Box")) 
+	then
+	    insert(new com.arch.fpl.hub.model.common.Validator());
+	    $quoteStatus.setStatusCode("Referral");
+	    $quoteStatus.setStatusDetail("This has been referred for underwriting review.");
+	    $adhocQuoteDetails.setReferralReason("This submission has been referred due to: insured having a P.O. Box address.");
+    end
+    
+    rule "Pre process to check for referrals-10"
+	agenda-group "Initial-Validator"
+    salience 41
+	when 
+	$adhocQuoteDetails: AdhocQuoteDetails()
+	$quoteRequestor: QuoteProcessRequestor(quoteRequestorCode == "HIP")
+	not com.arch.fpl.hub.model.common.Validator()
+	$quoteStatus: QuoteStatus()
+	$quoteRequest: QuoteRequest(policyBusinessBasics.subRelOpnPriBusYN_7024 != null && !policyBusinessBasics.subRelOpnPriBusYN_7024.trim().isEmpty() && "No".equalsIgnoreCase(policyBusinessBasics.subRelOpnPriBusYN_7024) == false) 
+	then
+	    insert(new com.arch.fpl.hub.model.common.Validator());
+	    $quoteStatus.setStatusCode("Referral");
+	    $quoteStatus.setStatusDetail("This has been referred for underwriting review.");
+	    $adhocQuoteDetails.setReferralReason("This submission has been referred due to: insured having subsidiaries with operations unrelated to their primary business.");
+    end
+    rule "Pre process to check for referrals-11"
+	agenda-group "Initial-Validator"
+    salience 40
+	when 
+	$adhocQuoteDetails: AdhocQuoteDetails()
+	$quoteRequestor: QuoteProcessRequestor(quoteRequestorCode == "HIP")
+	not com.arch.fpl.hub.model.common.Validator()com.arch.fpl.hub.model.clearance.request.Account( )
+	$quoteStatus: QuoteStatus()
+	$quoteRequest: QuoteRequest(policyBusinessBasics.reogArrngCredYN_7031 != null && !policyBusinessBasics.reogArrngCredYN_7031.trim().isEmpty() && "No".equalsIgnoreCase(policyBusinessBasics.reogArrngCredYN_7031) == false) 
+	then
+	    insert(new com.arch.fpl.hub.model.common.Validator());
+	    $quoteStatus.setStatusCode("Referral");
+	    $quoteStatus.setStatusDetail("This has been referred for underwriting review.");
+	    $adhocQuoteDetails.setReferralReason("This submission has been referred due to: insured having a reorganization or arrangement with creditors under federal or state law.");
+    end
+    
+    rule "Pre process to check for referrals-12"
+	agenda-group "Initial-Validator"
+    salience 39
+	when 
+	$adhocQuoteDetails: AdhocQuoteDetails()
+	$quoteRequestor: QuoteProcessRequestor(quoteRequestorCode == "HIP")
+	not com.arch.fpl.hub.model.common.Validator()
+	$quoteStatus: QuoteStatus()
+	$quoteRequest: QuoteRequest(policyBusinessBasics.redWrkForceYN_7033 != null && !policyBusinessBasics.redWrkForceYN_7033.trim().isEmpty() && "No".equalsIgnoreCase(policyBusinessBasics.redWrkForceYN_7033) == false) 
+	then
+	    insert(new com.arch.fpl.hub.model.common.Validator());
+	    $quoteStatus.setStatusCode("Referral");
+	    $quoteStatus.setStatusDetail("This has been referred for underwriting review.");
+	    $adhocQuoteDetails.setReferralReason("This submission has been referred due to: insured having a branch, location, facility, office, or subsidiary closings, consolidations, layoffs, or reductions in workforce.");
+    end
+    
+     rule "Pre process to check for referrals-13"
+	agenda-group "Initial-Validator"
+    salience 38
+	when 
+	$adhocQuoteDetails: AdhocQuoteDetails()
+	$quoteRequestor: QuoteProcessRequestor(quoteRequestorCode == "HIP")
+	not com.arch.fpl.hub.model.common.Validator()
+	$quoteStatus: QuoteStatus()
+	$quoteRequest: QuoteRequest(policyInsuranceHistory.propLiabCovPartsYN_8033 != null && !policyInsuranceHistory.propLiabCovPartsYN_8033.trim().isEmpty() && "No".equalsIgnoreCase(policyInsuranceHistory.propLiabCovPartsYN_8033) == false) 
+	then
+	    insert(new com.arch.fpl.hub.model.common.Validator());
+	    $quoteStatus.setStatusCode("Referral");
+	    $quoteStatus.setStatusDetail("This has been referred for underwriting review.");
+	    $adhocQuoteDetails.setReferralReason("This submission has been referred due to: insured or any person or entity proposed for coverage is aware of any fact, circumstance, or situation which he or she has reason to suppose which might give rise to any claim that would fall within the scope of the proposed liability coverage parts.");
+    end
+    
+     rule "Pre process to check for referrals-14"
+	agenda-group "Initial-Validator"
+    salience 37
+	when 
+	$adhocQuoteDetails: AdhocQuoteDetails()
+	$quoteRequestor: QuoteProcessRequestor(quoteRequestorCode == "HIP")
+	not com.arch.fpl.hub.model.common.Validator()
+	$quoteStatus: QuoteStatus()
+	$quoteRequest: QuoteRequest(policyInsuranceHistory.invEEOCPst3YrYN_8035 != null && !policyInsuranceHistory.invEEOCPst3YrYN_8035.trim().isEmpty() && "No".equalsIgnoreCase(policyInsuranceHistory.invEEOCPst3YrYN_8035) == false) 
+	then
+	    insert(new com.arch.fpl.hub.model.common.Validator());
+	    $quoteStatus.setStatusCode("Referral");
+	    $quoteStatus.setStatusDetail("This has been referred for underwriting review.");
+	    $adhocQuoteDetails.setReferralReason("This submission has been referred due to: insured has been involved in EEOC or other similar administrative proceeding during the past three years.");
+    end
+    
+    rule "Pre process to check for referrals-15"
+	agenda-group "Initial-Validator"
+    salience 36
+	when 
+	$adhocQuoteDetails: AdhocQuoteDetails()
+	$quoteRequestor: QuoteProcessRequestor(quoteRequestorCode == "HIP")
+	not com.arch.fpl.hub.model.common.Validator()
+	$quoteStatus: QuoteStatus()
+	$quoteRequest: QuoteRequest(policyInsuranceHistory.clmDur5YrYN_8037 != null && !policyInsuranceHistory.clmDur5YrYN_8037.trim().isEmpty() && "No".equalsIgnoreCase(policyInsuranceHistory.clmDur5YrYN_8037) == false) 
+	then
+	    insert(new com.arch.fpl.hub.model.common.Validator());
+	    $quoteStatus.setStatusCode("Referral");
+	    $quoteStatus.setStatusDetail("This has been referred for underwriting review.");
+	    $adhocQuoteDetails.setReferralReason("This submission has been referred due to: insured having any claims during the last 5 years.");
+    end
+    
+    rule "Pre process to check for referrals-16"
+	agenda-group "Initial-Validator"
+    salience 35
+	when 
+	$adhocQuoteDetails: AdhocQuoteDetails()
+	$quoteRequestor: QuoteProcessRequestor(quoteRequestorCode == "HIP")
+	not com.arch.fpl.hub.model.common.Validator()
+	$quoteStatus: QuoteStatus()
+	$quoteRequest: QuoteRequest(policyInsuranceHistory.invEmpRelCvlSut3YrYN_8048 != null && !policyInsuranceHistory.invEmpRelCvlSut3YrYN_8048.trim().isEmpty() && "No".equalsIgnoreCase(policyInsuranceHistory.invEmpRelCvlSut3YrYN_8048) == false) 
+	then
+	    insert(new com.arch.fpl.hub.model.common.Validator());
+	    $quoteStatus.setStatusCode("Referral");
+	    $quoteStatus.setStatusDetail("This has been referred for underwriting review.");
+	    $adhocQuoteDetails.setReferralReason("This submission has been referred due to: insured been involved in employment-related civil suit or claim resulting in payment (including defense costs) over $10,000 during the past three years.");
+    end
+    rule "Pre process to check for referrals-17"
+	agenda-group "Initial-Validator"
+    salience 34
+	when 
+	$adhocQuoteDetails: AdhocQuoteDetails()
+	$quoteRequestor: QuoteProcessRequestor(quoteRequestorCode == "HIP")
+	not com.arch.fpl.hub.model.common.Validator()
+	$quoteStatus: QuoteStatus()
+	$quoteRequest: QuoteRequest(policyInsuranceHistory.invCvlRghtViol3YrYN_8049 != null && !policyInsuranceHistory.invCvlRghtViol3YrYN_8049.trim().isEmpty() && "No".equalsIgnoreCase(policyInsuranceHistory.invCvlRghtViol3YrYN_8049) == false) 
+	then
+	    insert(new com.arch.fpl.hub.model.common.Validator());
+	    $quoteStatus.setStatusCode("Referral");
+	    $quoteStatus.setStatusDetail("This has been referred for underwriting review.");
+	    $adhocQuoteDetails.setReferralReason("This submission has been referred due to: insured been involved in any action or civil suit brought against you by a customer, client, or third party alleging harassment, discrimination, or civil rights violations during the past three years.");
+    end
+    
+    rule "Pre process to check for referrals-18"
+	agenda-group "Initial-Validator"
+    salience 33
+	when 
+	$adhocQuoteDetails: AdhocQuoteDetails()
+	$quoteRequestor: QuoteProcessRequestor(quoteRequestorCode == "HIP")
+	not com.arch.fpl.hub.model.common.Validator()
+	$quoteStatus: QuoteStatus()
+	$quoteRequest: QuoteRequest(policyInsuranceHistory.prtClmReg3YrYN_8050 != null && !policyInsuranceHistory.prtClmReg3YrYN_8050.trim().isEmpty() && "No".equalsIgnoreCase(policyInsuranceHistory.prtClmReg3YrYN_8050) == false) 
+	then
+	    insert(new com.arch.fpl.hub.model.common.Validator());
+	    $quoteStatus.setStatusCode("Referral");
+	    $quoteStatus.setStatusDetail("This has been referred for underwriting review.");
+	    $adhocQuoteDetails.setReferralReason("This submission has been referred due to: insured being party to a claim which would have fallen within the scope of this coverage including but not limited to employment-related claims, criminal actions, administrative or regulatory proceedings, charges, hearings, demands or lawsuits during the past three years, whether or not insured.");
+    end
+    
+    rule "Pre process to check for referrals-19"
+	agenda-group "Initial-Validator"
+    salience 32
+	when 
+	$adhocQuoteDetails: AdhocQuoteDetails()
+	$quoteRequestor: QuoteProcessRequestor(quoteRequestorCode == "HIP")
+	not com.arch.fpl.hub.model.common.Validator()
+	$quoteStatus: QuoteStatus()
+	$quoteRequest: QuoteRequest(policyInsuranceHistory.clmPast5Yr_8051 != null && policyInsuranceHistory.clmPast5Yr_8051 != false) 
+	then
+	    insert(new com.arch.fpl.hub.model.common.Validator());
+	    $quoteStatus.setStatusCode("Referral");
+	    $quoteStatus.setStatusDetail("This has been referred for underwriting review.");
+	    $adhocQuoteDetails.setReferralReason("This submission has been referred due to: insured having any claims (other than for benefits under 29 C.F.R. § 2560.503-1(h) or similar procedures pursuant to applicable law) been made during the past five years.");
+    end
+    
+    rule "Pre process to check for referrals-20"
+	agenda-group "Initial-Validator"
+    salience 31
+	when 
+	$adhocQuoteDetails: AdhocQuoteDetails()
+	$quoteRequestor: QuoteProcessRequestor(quoteRequestorCode == "HIP")
+	not com.arch.fpl.hub.model.common.Validator()
+	$quoteStatus: QuoteStatus()
+	$quoteRequest: QuoteRequest(policyProtection.diroff_2004 && policyDirectorsAndOfficers.pctVotShrOwn_9030 < 50) 
+	then
+	    insert(new com.arch.fpl.hub.model.common.Validator());
+	    $quoteStatus.setStatusCode("Referral");
+	    $quoteStatus.setStatusDetail("This has been referred for underwriting review.");
+	    $adhocQuoteDetails.setReferralReason("This submission has been referred due to: insured having percentage of voting shares owned less than 50%.");
+    end
+    
+    rule "Pre process to check for referrals-21"
+	agenda-group "Initial-Validator"
+    salience 30
+	when 
+	$adhocQuoteDetails: AdhocQuoteDetails()
+	$quoteRequestor: QuoteProcessRequestor(quoteRequestorCode == "HIP")
+	not com.arch.fpl.hub.model.common.Validator()
+	$quoteStatus: QuoteStatus()
+	$quoteRequest: QuoteRequest(policyProtection.diroff_2004 && policyDirectorsAndOfficers.relFamShrHldr_9031 != null &&  policyDirectorsAndOfficers.relFamShrHldr_9031 != false) 
+	then
+	    insert(new com.arch.fpl.hub.model.common.Validator());
+	    $quoteStatus.setStatusCode("Referral");
+	    $quoteStatus.setStatusDetail("This has been referred for underwriting review.");
+	    $adhocQuoteDetails.setReferralReason("This submission has been referred due to: insured related by family to another shareholder or to another director or officer.");
+    end
+    
+    rule "Pre process to check for referrals-22"
+	agenda-group "Initial-Validator"
+    salience 29
+	when 
+	$adhocQuoteDetails: AdhocQuoteDetails()
+	$quoteRequestor: QuoteProcessRequestor(quoteRequestorCode == "HIP")
+	not com.arch.fpl.hub.model.common.Validator()
+	$quoteStatus: QuoteStatus()
+	$quoteRequest: QuoteRequest(policyProtection.diroff_2004 && policyDirectorsAndOfficers.brchViolDbtYN_9034 != null && !policyDirectorsAndOfficers.brchViolDbtYN_9034.trim().isEmpty() && "No".equalsIgnoreCase(policyDirectorsAndOfficers.brchViolDbtYN_9034) == false) 
+	then
+	    insert(new com.arch.fpl.hub.model.common.Validator());
+	    $quoteStatus.setStatusCode("Referral");
+	    $quoteStatus.setStatusDetail("This has been referred for underwriting review.");
+	    $adhocQuoteDetails.setReferralReason("This submission has been referred due to: insured eithr currently, or during the past 12 months has been in breach or violation of any debt covenant.");
+    end
+    
+    rule "Pre process to check for referrals-23"
+	agenda-group "Initial-Validator"
+    salience 28
+	when 
+	$adhocQuoteDetails: AdhocQuoteDetails()
+	$quoteRequestor: QuoteProcessRequestor(quoteRequestorCode == "HIP")
+	not com.arch.fpl.hub.model.common.Validator()
+	$quoteStatus: QuoteStatus()
+	$quoteRequest: QuoteRequest(policyProtection.diroff_2004 && policyDirectorsAndOfficers.chgDirSenOffYN_9038 != null && !policyDirectorsAndOfficers.chgDirSenOffYN_9038.trim().isEmpty() && "No".equalsIgnoreCase(policyDirectorsAndOfficers.chgDirSenOffYN_9038) == false) 
+	then
+	    insert(new com.arch.fpl.hub.model.common.Validator());
+	    $quoteStatus.setStatusCode("Referral");
+	    $quoteStatus.setStatusDetail("This has been referred for underwriting review.");
+	    $adhocQuoteDetails.setReferralReason("This submission has been referred due to: insured having change in directors or senior officers in the past 24 months.");
+    end
+    
+    rule "Pre process to check for referrals-24a"
+	agenda-group "Initial-Validator"
+    salience 27
+	when 
+	$adhocQuoteDetails: AdhocQuoteDetails()
+	$quoteRequestor: QuoteProcessRequestor(quoteRequestorCode == "HIP")
+	not com.arch.fpl.hub.model.common.Validator()
+	$quoteStatus: QuoteStatus()
+	$quoteRequest: QuoteRequest(policyProtection.diroff_2004 && policyDirectorsAndOfficers.copyPatLitYN_9041 != null && !policyDirectorsAndOfficers.copyPatLitYN_9041.trim().isEmpty() && "No".equalsIgnoreCase(policyDirectorsAndOfficers.copyPatLitYN_9041) == false)
+	then
+	    insert(new com.arch.fpl.hub.model.common.Validator());
+	    $quoteStatus.setStatusCode("Referral");
+	    $quoteStatus.setStatusDetail("This has been referred for underwriting review.");
+	    $adhocQuoteDetails.setReferralReason("This submission has been referred due to: insured or any person proposed for coverage been the subject of, or been involved in anti-trust, copyright or patent litigation.");
+    end
+    
+    rule "Pre process to check for referrals-24b"
+	agenda-group "Initial-Validator"
+    salience 27
+	when 
+	$adhocQuoteDetails: AdhocQuoteDetails()
+	$quoteRequestor: QuoteProcessRequestor(quoteRequestorCode == "HIP")
+	not com.arch.fpl.hub.model.common.Validator()
+	$quoteStatus: QuoteStatus()
+	$quoteRequest: QuoteRequest(policyProtection.diroff_2004 &&  policyDirectorsAndOfficers.decTrdConFrdYN_9043 != null && !policyDirectorsAndOfficers.decTrdConFrdYN_9043.trim().isEmpty() && "No".equalsIgnoreCase(policyDirectorsAndOfficers.decTrdConFrdYN_9043) == false) 
+	then
+	    insert(new com.arch.fpl.hub.model.common.Validator());
+	    $quoteStatus.setStatusCode("Referral");
+	    $quoteStatus.setStatusDetail("This has been referred for underwriting review.");
+	    $adhocQuoteDetails.setReferralReason("This submission has been referred due to: insured or any person proposed for coverage been the subject of, or been involved in deceptive trade practices or consumer fraud.");
+    end
+    
+    rule "Pre process to check for referrals-24c"
+	agenda-group "Initial-Validator"
+    salience 27
+	when 
+	$adhocQuoteDetails: AdhocQuoteDetails()
+	$quoteRequestor: QuoteProcessRequestor(quoteRequestorCode == "HIP")
+	not com.arch.fpl.hub.model.common.Validator()
+	$quoteStatus: QuoteStatus()
+	$quoteRequest: QuoteRequest(policyProtection.diroff_2004 &&policyDirectorsAndOfficers.cvlCrmAdmLawYN_9045 != null && !policyDirectorsAndOfficers.cvlCrmAdmLawYN_9045.trim().isEmpty() && "No".equalsIgnoreCase(policyDirectorsAndOfficers.cvlCrmAdmLawYN_9045) == false)
+	then
+	    insert(new com.arch.fpl.hub.model.common.Validator());
+	    $quoteStatus.setStatusCode("Referral");
+	    $quoteStatus.setStatusDetail("This has been referred for underwriting review.");
+	    $adhocQuoteDetails.setReferralReason("This submission has been referred due to: insured or any person proposed for coverage been the subject of, or been involved in civil, criminal or administrative proceeding alleging violation of any federal or state securities law.");
+    end
+    
+    rule "Pre process to check for referrals-24d"
+	agenda-group "Initial-Validator"
+    salience 27
+	when 
+	$adhocQuoteDetails: AdhocQuoteDetails()
+	$quoteRequestor: QuoteProcessRequestor(quoteRequestorCode == "HIP")
+	not com.arch.fpl.hub.model.common.Validator()
+	$quoteStatus: QuoteStatus()
+	$quoteRequest: QuoteRequest(policyProtection.diroff_2004 && policyDirectorsAndOfficers.anyCrmActYN_9047 != null && !policyDirectorsAndOfficers.anyCrmActYN_9047.trim().isEmpty() && "No".equalsIgnoreCase(policyDirectorsAndOfficers.anyCrmActYN_9047) == false) 
+	then
+	    insert(new com.arch.fpl.hub.model.common.Validator());
+	    $quoteStatus.setStatusCode("Referral");
+	    $quoteStatus.setStatusDetail("This has been referred for underwriting review.");
+	    $adhocQuoteDetails.setReferralReason("This submission has been referred due to: insured or any person proposed for coverage been the subject of, or been involved in criminal actions.");
+    end
+    
+    rule "Pre process to check for referrals-25"
+	agenda-group "Initial-Validator"
+    salience 26
+	when 
+	$adhocQuoteDetails: AdhocQuoteDetails()
+	$quoteRequestor: QuoteProcessRequestor(quoteRequestorCode == "HIP")
+	not com.arch.fpl.hub.model.common.Validator()
+	$quoteStatus: QuoteStatus()
+	$quoteRequest: QuoteRequest(policyProtection.epl_2005 && policyEmploymentPracticesLiability.pctUSCyEmpSalGT120K_10049 > 75) 
+	then
+	    insert(new com.arch.fpl.hub.model.common.Validator());
+	    $quoteStatus.setStatusCode("Referral");
+	    $quoteStatus.setStatusDetail("This has been referred for underwriting review.");
+	    $adhocQuoteDetails.setReferralReason("This submission has been referred due to: insured having more than 75% employees that have a salary greater than $120,000.");
+    end
+    
+    rule "Pre process to check for referrals-26"
+	agenda-group "Initial-Validator"
+    salience 25
+	when 
+	$adhocQuoteDetails: AdhocQuoteDetails()
+	$quoteRequestor: QuoteProcessRequestor(quoteRequestorCode == "HIP")
+	not com.arch.fpl.hub.model.common.Validator()
+	$quoteStatus: QuoteStatus()
+	$quoteRequest: QuoteRequest(policyProtection.epl_2005 && policyEmploymentPracticesLiability.durPst12RedWrkYN_10079 != null && !policyEmploymentPracticesLiability.durPst12RedWrkYN_10079.trim().isEmpty() && "No".equalsIgnoreCase(policyEmploymentPracticesLiability.durPst12RedWrkYN_10079) == false)
+	then
+	    insert(new com.arch.fpl.hub.model.common.Validator());
+	    $quoteStatus.setStatusCode("Referral");
+	    $quoteStatus.setStatusDetail("This has been referred for underwriting review.");
+	    $adhocQuoteDetails.setReferralReason("This submission has been referred due to: insured having experienced in the past 12 months(or is planning in the next 12 months) layoffs or a reduction in workforce.");
+    end
+    
+    rule "Pre process to check for referrals-27"
+	agenda-group "Initial-Validator"
+    salience 24
+	when 
+	$adhocQuoteDetails: AdhocQuoteDetails()
+	$quoteRequestor: QuoteProcessRequestor(quoteRequestorCode == "HIP")
+	not com.arch.fpl.hub.model.common.Validator()
+	$quoteStatus: QuoteStatus()
+	$quoteRequest: QuoteRequest(policyProtection.epl_2005 && policyEmploymentPracticesLiability.wilLayRedTotWrkYN_10080 != null && !policyEmploymentPracticesLiability.wilLayRedTotWrkYN_10080.trim().isEmpty() && "No".equalsIgnoreCase(policyEmploymentPracticesLiability.wilLayRedTotWrkYN_10080) == false) 
+	then
+	    insert(new com.arch.fpl.hub.model.common.Validator());
+	    $quoteStatus.setStatusCode("Referral");
+	    $quoteStatus.setStatusDetail("This has been referred for underwriting review.");
+	    $adhocQuoteDetails.setReferralReason("This submission has been referred due to: insured having layoffs or reduction in workforce equal to 5% or more, or 50 or more, of the total workforce in the next 12 months.?");
+    end
+    
+    rule "Pre process to check for referrals-28"
+	agenda-group "Initial-Validator"
+    salience 23
+	when 
+	$adhocQuoteDetails: AdhocQuoteDetails()
+	$quoteRequestor: QuoteProcessRequestor(quoteRequestorCode == "HIP")
+	not com.arch.fpl.hub.model.common.Validator()
+	$quoteStatus: QuoteStatus()
+	$quoteRequest: QuoteRequest(policyProtection.fiduciary_2006 && (policyFiduciaryLiability.typPlan_11026 == "DB" || policyFiduciaryLiability.typPlan_11026 == "ESOP" || policyFiduciaryLiability.typPlan_11026 == "EBP")) 
+	then
+	    insert(new com.arch.fpl.hub.model.common.Validator());
+	    $quoteStatus.setStatusCode("Referral");
+	    $quoteStatus.setStatusDetail("This has been referred for underwriting review.");
+	    $adhocQuoteDetails.setReferralReason("This submission has been referred due to: insured's type of plan when requesting for a fiduciary coverage.");
+    end
+    
+    rule "Pre process to check for referrals-29"
+	agenda-group "Initial-Validator"
+    salience 22
+	when 
+	$adhocQuoteDetails: AdhocQuoteDetails()
+	$quoteRequestor: QuoteProcessRequestor(quoteRequestorCode == "HIP")
+	not com.arch.fpl.hub.model.common.Validator()
+	$quoteStatus: QuoteStatus()
+	$quoteRequest: QuoteRequest(policyProtection.fiduciary_2006 && policyFiduciaryLiability.typPlan_11026 != null && !policyFiduciaryLiability.typPlan_11026.trim().isEmpty() && policyFiduciaryLiability.typPlan_11026 != "DC" && policyFiduciaryLiability.typPlan_11026 != "EB") 
+	then
+	    insert(new com.arch.fpl.hub.model.common.Validator());
+	    $quoteStatus.setStatusCode("Referral");
+	    $quoteStatus.setStatusDetail("This has been referred for underwriting review.");
+	    $adhocQuoteDetails.setReferralReason("This submission has been referred due to: insured's type of plan when requesting for a fiduciary coverage.");
+    end
+    
+    rule "Pre process to check for referrals-30"
+	agenda-group "Initial-Validator"
+    salience 21
+	when 
+	$adhocQuoteDetails: AdhocQuoteDetails()
+	$quoteRequestor: QuoteProcessRequestor(quoteRequestorCode == "HIP")
+	not com.arch.fpl.hub.model.common.Validator()
+	$quoteStatus: QuoteStatus()
+	$quoteRequest: QuoteRequest(policyProtection.fiduciary_2006 && policyFiduciaryLiability.plnERISAYN_11039 != null && !policyFiduciaryLiability.plnERISAYN_11039.trim().isEmpty() && "No".equalsIgnoreCase(policyFiduciaryLiability.plnERISAYN_11039) == false) 
+	then
+	    insert(new com.arch.fpl.hub.model.common.Validator());
+	    $quoteStatus.setStatusCode("Referral");
+	    $quoteStatus.setStatusDetail("This has been referred for underwriting review.");
+	    $adhocQuoteDetails.setReferralReason("This submission has been referred due to: insured having at least one plan not in compliance with plan agreements or ERISA.");
+    end
+    
+    rule "Pre process to check for referrals-31"
+	agenda-group "Initial-Validator"
+    salience 20
+	when 
+	$adhocQuoteDetails: AdhocQuoteDetails()
+	$quoteRequestor: QuoteProcessRequestor(quoteRequestorCode == "HIP")
+	not com.arch.fpl.hub.model.common.Validator()
+	$quoteStatus: QuoteStatus()
+	$quoteRequest: QuoteRequest(policyProtection.fiduciary_2006 && policyFiduciaryLiability.nxt12MntCshBalYN_11041 != null && !policyFiduciaryLiability.nxt12MntCshBalYN_11041.trim().isEmpty() && "No".equalsIgnoreCase(policyFiduciaryLiability.nxt12MntCshBalYN_11041) == false) 
+	then
+	    insert(new com.arch.fpl.hub.model.common.Validator());
+	    $quoteStatus.setStatusCode("Referral");
+	    $quoteStatus.setStatusDetail("This has been referred for underwriting review.");
+	    $adhocQuoteDetails.setReferralReason("This submission has been referred due to: insured is contemplating in the next 12 months(or in the last 12 months has completed) a merger, freezing, terminating or converting any DB plan to cash balance.");
+    end
+    
+    rule "Pre process to check for referrals-32"
+	agenda-group "Initial-Validator"
+    salience 19
+	when $adhocQuoteDetails: AdhocQuoteDetails()
+	$quoteRequestor: QuoteProcessRequestor(quoteRequestorCode == "HIP")
+	not com.arch.fpl.hub.model.common.Validator()
+	$quoteStatus: QuoteStatus()
+	$quoteRequest: QuoteRequest(policyProtection.fiduciary_2006 && policyFiduciaryLiability.sbjInstReg3YRYN_11047 != null && !policyFiduciaryLiability.sbjInstReg3YRYN_11047.trim().isEmpty() && "No".equalsIgnoreCase(policyFiduciaryLiability.sbjInstReg3YRYN_11047) == false) 
+	then
+	    insert(new com.arch.fpl.hub.model.common.Validator());
+	    $quoteStatus.setStatusCode("Referral");
+	    $quoteStatus.setStatusDetail("This has been referred for underwriting review.");
+	    $adhocQuoteDetails.setReferralReason("This submission has been referred due to: insured has been subject to an investigation by the DOL, IRS or similar regulatory body in the last three years.");
+    end
+    
+    rule "Pre process to check for referrals-33"
+	agenda-group "Initial-Validator"
+    salience 18
+	when 
+	$adhocQuoteDetails: AdhocQuoteDetails()
+	$quoteRequestor: QuoteProcessRequestor(quoteRequestorCode == "HIP")
+	not com.arch.fpl.hub.model.common.Validator()
+	$quoteStatus: QuoteStatus()
+	$quoteRequest: QuoteRequest(policyProtection.fiduciary_2006 && policyFiduciaryLiability.pst3YRMrgTmFrzPlnYN_11048 != null && !policyFiduciaryLiability.pst3YRMrgTmFrzPlnYN_11048.trim().isEmpty() && "No".equalsIgnoreCase(policyFiduciaryLiability.pst3YRMrgTmFrzPlnYN_11048) == false) 
+	then
+	    insert(new com.arch.fpl.hub.model.common.Validator());
+	    $quoteStatus.setStatusCode("Referral");
+	    $quoteStatus.setStatusDetail("This has been referred for underwriting review.");
+	    $adhocQuoteDetails.setReferralReason("This submission has been referred due to: insured has merged, terminated or frozen any plans in the past three years.");
+    end
+    
+    rule "Pre process to check for referrals-34"
+	agenda-group "Initial-Validator"
+    salience 17
+	when 
+	$adhocQuoteDetails: AdhocQuoteDetails()
+	$quoteRequestor: QuoteProcessRequestor(quoteRequestorCode == "HIP")
+	not com.arch.fpl.hub.model.common.Validator()
+	$quoteStatus: QuoteStatus()
+	$quoteRequest: QuoteRequest(policyProtection.fiduciary_2006 && policyFiduciaryLiability.fidGulBrchTrstYN_11053 != null && !policyFiduciaryLiability.fidGulBrchTrstYN_11053.trim().isEmpty() && "No".equalsIgnoreCase(policyFiduciaryLiability.fidGulBrchTrstYN_11053) == false) 
+	then
+	    insert(new com.arch.fpl.hub.model.common.Validator());
+	    $quoteStatus.setStatusCode("Referral");
+	    $quoteStatus.setStatusDetail("This has been referred for underwriting review.");
+	    $adhocQuoteDetails.setReferralReason("This submission has been referred due to: insured has a fiduciary been accused, found guilty or held liable for breach of trust?.");
+    end
+    
+    rule "Pre process to check for referrals-35"
+	agenda-group "Initial-Validator"
+    salience 16
+	when 
+	$adhocQuoteDetails: AdhocQuoteDetails()
+	$quoteRequestor: QuoteProcessRequestor(quoteRequestorCode == "HIP")
+	not com.arch.fpl.hub.model.common.Validator()
+	$quoteStatus: QuoteStatus()
+	$quoteRequest: QuoteRequest(policyProtection.fiduciary_2006 && policyFiduciaryLiability.fidConvCrmCondYN_11055 != null && !policyFiduciaryLiability.fidConvCrmCondYN_11055.trim().isEmpty() && "No".equalsIgnoreCase(policyFiduciaryLiability.fidConvCrmCondYN_11055) == false) 
+	then
+	    insert(new com.arch.fpl.hub.model.common.Validator());
+	    $quoteStatus.setStatusCode("Referral");
+	    $quoteStatus.setStatusDetail("This has been referred for underwriting review.");
+	    $adhocQuoteDetails.setReferralReason("This submission has been referred due to: insured having at least one fiduciary that has been convicted of criminal conduct.");
+    end
+    
+    rule "Pre process to check for referrals-36"
+	agenda-group "Initial-Validator"
+    salience 15
+	when 
+	$adhocQuoteDetails: AdhocQuoteDetails()
+	$quoteRequestor: QuoteProcessRequestor(quoteRequestorCode == "HIP")
+	not com.arch.fpl.hub.model.common.Validator()
+	$quoteStatus: QuoteStatus()
+	$quoteRequest: QuoteRequest(policyProtection.fiduciary_2006 && policyFiduciaryLiability.antFeeGovAuthYN_11057 != null && !policyFiduciaryLiability.antFeeGovAuthYN_11057.trim().isEmpty() && "No".equalsIgnoreCase(policyFiduciaryLiability.antFeeGovAuthYN_11057) == false) 
+	then
+	    insert(new com.arch.fpl.hub.model.common.Validator());
+	    $quoteStatus.setStatusCode("Referral");
+	    $quoteStatus.setStatusDetail("This has been referred for underwriting review.");
+	    $adhocQuoteDetails.setReferralReason("This submission has been referred due to: insured had an assessment of fees, fines or penalties under any voluntary compliance resolution program or similar voluntary settlement program administered by the IRS, DOL or other government authority against any plan");
+    end
+    
+    rule "Pre process to check for referrals-37"
+	agenda-group "Initial-Validator"
+    salience 14
+	when 
+	$adhocQuoteDetails: AdhocQuoteDetails()
+	$quoteRequestor: QuoteProcessRequestor(quoteRequestorCode == "HIP")
+	not com.arch.fpl.hub.model.common.Validator()
+	$quoteStatus: QuoteStatus()
+	$quoteRequest: QuoteRequest(policyProtection.crime_2007 && "Yes".equalsIgnoreCase(policyCrime.allEmpRecMthStmYN_12032) == true && policyCompanyHistory.numEmpFulCurYr_3029 > 50) 
+	then
+	    insert(new com.arch.fpl.hub.model.common.Validator());
+	    $quoteStatus.setStatusCode("Referral");
+	    $quoteStatus.setStatusDetail("This has been referred for underwriting review.");
+	    $adhocQuoteDetails.setReferralReason("This submission has been referred due to: insured allowing employees who reconcile the monthly bank statements to also sign checks or handle deposits while having more than 50 employees in current year.");
+    end
+    
+    rule "Pre process to check for referrals-38"
+	agenda-group "Initial-Validator"
+    salience 13
+	when 
+	$adhocQuoteDetails: AdhocQuoteDetails()
+	$quoteRequestor: QuoteProcessRequestor(quoteRequestorCode == "HIP")
+	not com.arch.fpl.hub.model.common.Validator()
+	$quoteStatus: QuoteStatus()
+	$quoteRequest: QuoteRequest(policyProtection.crime_2007 && "Yes".equalsIgnoreCase(policyCrime.reqAllEmpExtCtcYN_12046) == false) 
+	then
+	    insert(new com.arch.fpl.hub.model.common.Validator());
+	    $quoteStatus.setStatusCode("Referral");
+	    $quoteStatus.setStatusDetail("This has been referred for underwriting review.");
+	    $adhocQuoteDetails.setReferralReason("This submission has been referred due to: insured not requiring that all employees verify, via a telephone call to an established contact at the original source, that any change to delivery or wire instructions is legitimate.");
+    end
+    
+    rule "Pre process to check for referrals-39"
+	agenda-group "Initial-Validator"
+    salience 12
+	when 
+	$adhocQuoteDetails: AdhocQuoteDetails()
+	$quoteRequestor: QuoteProcessRequestor(quoteRequestorCode == "HIP")
+	not com.arch.fpl.hub.model.common.Validator()
+	$quoteStatus: QuoteStatus()
+	$quoteRequest: QuoteRequest(policyProtection.crime_2007 && "Yes".equalsIgnoreCase(policyCrime.empSignWreTfrYN_12047) == false) 
+	then
+	    insert(new com.arch.fpl.hub.model.common.Validator());
+	    $quoteStatus.setStatusCode("Referral");
+	    $quoteStatus.setStatusDetail("This has been referred for underwriting review.");
+	    $adhocQuoteDetails.setReferralReason("This submission has been referred due to: insured not requiring second employee's signoff for all changes to delivery or wire transfer instructions and that appropriate documentation is obtained.");
+    end
+    
+    rule "Pre process to check for referrals-40"
+	agenda-group "Initial-Validator"
+    salience 10
+	when 
+	$adhocQuoteDetails: AdhocQuoteDetails()
+	$quoteRequestor: QuoteProcessRequestor(quoteRequestorCode == "HIP")
+	not com.arch.fpl.hub.model.common.Validator()
+	$quoteStatus: QuoteStatus()
+	$quoteRequest: QuoteRequest(policyProtection.crime_2007 && policyCrime.precMetGemYN_12066 != null && !policyCrime.precMetGemYN_12066.trim().isEmpty() && "No".equalsIgnoreCase(policyCrime.precMetGemYN_12066) == false) 
+	then
+	    insert(new com.arch.fpl.hub.model.common.Validator());
+	    $quoteStatus.setStatusCode("Referral");
+	    $quoteStatus.setStatusDetail("This has been referred for underwriting review.");
+	    $adhocQuoteDetails.setReferralReason("This submission has been referred due to: insured using precious metal, gemstone or other high value items in the course of business.");
+    end
+    
+    rule "Pre process to check for referrals-41"
+	agenda-group "Initial-Validator"
+    salience 9
+	when 
+	$adhocQuoteDetails: AdhocQuoteDetails()
+	$quoteRequestor: QuoteProcessRequestor(quoteRequestorCode == "HIP")
+	not com.arch.fpl.hub.model.common.Validator()
+	$quoteStatus: QuoteStatus()
+	$quoteRequest: QuoteRequest(policyProtection.crime_2007 && "Yes".equalsIgnoreCase(policyCrime.lstOfAuthYN_12067) == false && policyCompanyHistory.numEmpFulCurYr_3029 > 50) 
+	then
+	    insert(new com.arch.fpl.hub.model.common.Validator());
+	    $quoteStatus.setStatusCode("Referral");
+	    $quoteStatus.setStatusDetail("This has been referred for underwriting review.");
+	    $adhocQuoteDetails.setReferralReason("This submission has been referred due to: insured not maintaining a list of authorized vendors.");
+    end
+    
+    rule "Pre process to check for referrals-42"
+	agenda-group "Initial-Validator"
+    salience 8
+	when 
+	$adhocQuoteDetails: AdhocQuoteDetails()
+	$quoteRequestor: QuoteProcessRequestor(quoteRequestorCode == "HIP")
+	not com.arch.fpl.hub.model.common.Validator()
+	$quoteStatus: QuoteStatus()
+	$quoteRequest: QuoteRequest(policyProtection.crime_2007 && policyCrime.exstVenAuthLstYN_12069 != null && !policyCrime.exstVenAuthLstYN_12069.trim().isEmpty() && "No".equalsIgnoreCase(policyCrime.exstVenAuthLstYN_12069) == false && policyCompanyHistory.numEmpFulCurYr_3029 > 50) 
+	then
+	    insert(new com.arch.fpl.hub.model.common.Validator());
+	    $quoteStatus.setStatusCode("Referral");
+	    $quoteStatus.setStatusDetail("This has been referred for underwriting review.");
+	    $adhocQuoteDetails.setReferralReason("This submission has been referred due to: insured allowing the same individual who verifies the existence of vendors to also have the authority to edit the authorized master vendor list.");
+    end
+    
+    rule "Pre process to check for referrals-43"
+	agenda-group "Initial-Validator"
+    salience 7
+	when 
+	$adhocQuoteDetails: AdhocQuoteDetails()
+	$quoteRequestor: QuoteProcessRequestor(quoteRequestorCode == "HIP")
+	not com.arch.fpl.hub.model.common.Validator()
+	$quoteStatus: QuoteStatus()
+	$quoteRequest: QuoteRequest(policyProtection.crime_2007 && "Yes".equalsIgnoreCase(policyCrime.compAuthEleFndTfrYN_12071) == false && policyCompanyHistory.numEmpFulCurYr_3029 > 50) 
+	then
+	    insert(new com.arch.fpl.hub.model.common.Validator());
+	    $quoteStatus.setStatusCode("Referral");
+	    $quoteStatus.setStatusDetail("This has been referred for underwriting review.");
+	    $adhocQuoteDetails.setReferralReason("This submission has been referred due to: insured not strictly complying with dual recorded authorization for all outgoing electronic funds transfer.");
+    end
+    
+    rule "Pre process to check for referrals-44"
+	agenda-group "Initial-Validator"
+    salience 6
+	when 
+	$adhocQuoteDetails: AdhocQuoteDetails()
+	$quoteRequestor: QuoteProcessRequestor(quoteRequestorCode == "HIP")
+	not com.arch.fpl.hub.model.common.Validator()
+	$quoteStatus: QuoteStatus()
+	$quoteRequest: QuoteRequest(policyCompanyHistory.isCompNFTYN_3012 != null && !policyCompanyHistory.isCompNFTYN_3012.trim().isEmpty() && "No".equalsIgnoreCase(policyCompanyHistory.isCompNFTYN_3012) == false)
+	then
+	 insert(new com.arch.fpl.hub.model.common.Validator());
+	    $quoteStatus.setStatusCode("Referral");
+	    $quoteStatus.setStatusDetail("This has been referred for underwriting review.");
+	    $adhocQuoteDetails.setReferralReason("This submission has been referred due to: insured's non-profit status.");
+    end 
+    
+    rule "Pre process to check for referrals-45"
+	agenda-group "Initial-Validator"
+    salience 6
+	when 
+	$adhocQuoteDetails: AdhocQuoteDetails()
+	$quoteRequestor: QuoteProcessRequestor(quoteRequestorCode == "HIP")
+	not com.arch.fpl.hub.model.common.Validator()
+	$quoteStatus: QuoteStatus()
+	$quoteRequest: QuoteRequest(policyCompanyHistory.taxExmtStsYN_3013 != null && !policyCompanyHistory.taxExmtStsYN_3013.trim().isEmpty() && "No".equalsIgnoreCase(policyCompanyHistory.taxExmtStsYN_3013) == false)
+	then
+	 insert(new com.arch.fpl.hub.model.common.Validator());
+	    $quoteStatus.setStatusCode("Referral");
+	    $quoteStatus.setStatusDetail("This has been referred for underwriting review.");
+	    $adhocQuoteDetails.setReferralReason("This submission has been referred due to: insured's tax exempt status.");
+    end 

@@ -1,0 +1,39 @@
+package com.archhub.hubcreatepolicy;
+
+import com.arch.fpl.hub.model.clearance.request.SubmissionClearanceRequestData;
+import com.arch.fpl.hub.model.common.QuoteProcessRequestor;
+import com.arch.fpl.hub.model.clearance.request.ProductFamilies;
+import com.arch.fpl.hub.model.clearance.request.ProductFamilyInfo;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Predicate;
+
+
+function Predicate<ProductFamilyInfo> covUpdate(String covIndicator) {
+ //Coverage Indicator 
+		        Predicate<ProductFamilyInfo> condition = sc -> sc.getProductFamilyCode().equalsIgnoreCase(covIndicator);
+		        
+     return condition ;
+ }
+
+
+rule "Derived Value Rules_1"
+    agenda-group "Sub-Clearance"
+	salience 7
+	when
+			$subClearance: SubmissionClearanceRequestData();
+			$quoteRequestor: QuoteProcessRequestor(getQuoteRequestorCode() == "HIP")
+	then
+		$subClearance.getSubmission().getProductFamilies().getProductFamilyInfo().removeIf(covUpdate("N"));
+end
+
+
+rule "Derived Value Rules_2"
+	    agenda-group "Sub-Clearance"
+	    salience 7
+	when
+			$subClearance: SubmissionClearanceRequestData();
+			$quoteRequestor: QuoteProcessRequestor(getQuoteRequestorCode() == "REQ1")
+	then
+		$subClearance.getSubmission().getProductFamilies().getProductFamilyInfo().removeIf(covUpdate("N"));
+end
